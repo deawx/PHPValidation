@@ -1,0 +1,766 @@
+<?php
+/**
+ * PHPValidation.php
+ *
+ * This file is part of PHPValidation.
+ *
+ * @package    PHPValidation.php @ 2021-10-03T10:06:13.735Z
+ * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
+ * @copyright  Copyright © 2021 PHPValidation
+ * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
+ * @version    1.0
+ * @link       https://www.muhammetsafak.com.tr
+ */
+
+namespace PHPValidation;
+
+class PHPValidation
+{
+    
+    /**
+     * @var array
+     */
+    public $patterns = [
+        'uri' => '[A-Za-z0-9-\/_?&=]+',
+        'slug' => '[-a-z0-9_-]',
+        'url' => '[A-Za-z0-9-:.\/_?&=#]+',
+        'alpha' => '[\p{L}]+',
+        'words' => '[\p{L}\s]+',
+        'alphanum' => '[\p{L}0-9]+',
+        'int' => '[0-9]+',
+        'float' => '[0-9\.,]+',
+        'tel' => '[0-9+\s()-]+',
+        'text' => '[\p{L}0-9\s-.,;:!"%&()?+\'°#\/@]+',
+        'file' => '[\p{L}\s0-9-_!%&()=\[\]#@,.;+]+\.[A-Za-z0-9]{2,4}',
+        'folder' => '[\p{L}\s0-9-_!%&()=\[\]#@,.;+]+',
+        'address' => '[\p{L}0-9\s.,()°-]+',
+        'date_dmy' => '[0-9]{1,2}\-[0-9]{1,2}\-[0-9]{4}',
+        'date_ymd' => '[0-9]{4}\-[0-9]{1,2}\-[0-9]{1,2}',
+        'email' => '[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+[.]+[a-z-A-Z]'
+    ];
+
+    public $lang = [
+        "validation_error_invalid_mail" => "{mail} e-mail address is not valid.",
+        "validation_error_invalid_mail_domain" => "The domain of your email address ({mail}) should be {domain}, not {maildomain}.",
+        "validation_error_invalid_url" => "{url} URL address is not valid.",
+        "validation_error_invalid_url_domain" => "The domain of the url address ({url}) should be {domain}, not {urldomain}.",
+        "validation_error_invalid_bool" => "{data} is not bool.",
+        "validation_error_invalid_null" => "{data} is not null.",
+        "validation_error_invalid_array" => "{data} is not array.",
+        "validation_error_invalid_object" => "{data} is not object.",
+        "validation_error_invalid_float" => "{data} is not float number.",
+        "validation_error_invalid_resource" => "{data} is not resource.",
+        "validation_error_invalid_integer" => "{data} is not integer.",
+        "validation_error_invalid_integer_min_range" => "({data}) it cannot be less than {min}.",
+        "validation_error_invalid_integer_max_range" => "({data}) It cannot be greater than {max}.",
+        "validation_error_invalid_numeric" => "{data} is not numeric.",
+        "validation_error_invalid_ip" => "{ip} IP address is not valid",
+        "validation_error_invalid_ipv4" => "{ipv4} IPv4 address is not valid",
+        "validation_error_invalid_ipv6" => "{ipv6} IPv6 address is not valid",
+        "validation_error_invalid_string_lenght" => "Its length should be {lenght}.",
+        "validation_error_invalid_string_minlenght" => "It must be at least {min} in length.",
+        "validation_error_invalid_string_maxlenght" => "The length should be no more than {max}.",
+        "validation_error_invalid_min_length" => "The text must contain at least {min_length} characters.",
+        "validation_error_invalid_max_length" => "Text can contain up to {max_length} characters.",
+        "validation_error_invalid_min" => "Must be a number less than or equal to {min}",
+        "validation_error_invalid_max" => "Must be a number greater than or equal to {max}",
+        "validation_error_invalid_format" => "{data} is not in valid {pattern} format",
+        "validation_error_invalid_date" => "{date} Is not a valid date",
+        "validation_error_invalid_date_format" => "{value} Not a valid {format} date format",
+        "validation_error_invalid_required" => "Cannot be left blank"
+    ];
+
+    /**
+     * @var array
+     */
+    public $error = [];
+
+    /**
+     * @var array
+     */
+    public $data = [];
+
+    /**
+     * @var array
+     */
+    public $rule = [];
+
+    /**
+     * Include the data to be validated as an associative array.
+     * 
+     * @param array $data
+     * @return self
+     */
+    public function set(array $data = []): self
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    public function addSet($key, $value): self
+    {
+        $this->data[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Adds a new pattern
+     * 
+     * @param string $name
+     * @param string $pattern
+     * @return self
+     */
+    public function pattern(string $name, string $pattern): self
+    {
+        $this->patterns[$name] = $pattern;
+
+        return $this;
+    }
+
+    /**
+     * Returns the pattern associated with the pattern name.
+     * 
+     * @param string $pattern_name
+     * @return string|false
+     */
+    private function pattern_regex(string $pattern_name)
+    {
+        if(isset($this->patterns[$pattern_name])){
+            return '/^(' . $this->patterns[$pattern_name] . ')$/u';
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a value is in email address format.
+     * 
+     * @param string $mail Data to be tested.
+     * @param string $domain Default : ""
+     * @return bool
+     */
+    public function mail($mail, $domain = ""): bool
+    {
+        if($this->is_mail($mail)){
+            if($domain != ""){
+                [$mailuser, $maildomain] = explode("@", $mail);
+                if($maildomain == $domain){
+                    return true;
+                }else{
+                    $this->error[] = $this->__r("validation_error_invalid_mail_domain", ["mail" => $mail, "domain" => $domain, "maildomain" => $maildomain]);
+                }
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a value is in email address format.
+     * 
+     * @param string $mail Data to be tested.
+     * @return bool
+     */
+    public function is_mail($mail): bool
+    {
+        if(filter_var($mail, \FILTER_VALIDATE_EMAIL)){
+            return true;
+        }else{
+            $this->error[] = $this->__r("validation_error_invalid_mail", ["mail" => $mail]);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a value is in URL address format.
+     * 
+     * @param string $url Data to be tested.
+     * @param string $domain Default : ""
+     * @param bool
+     */
+    public function url($url, $domain = ""): bool
+    {
+        if($this->is_url($url)){
+            if($domain != ""){
+                $parse = parse_url($url);
+                if(isset($parse['host']) && $parse['host'] == $domain){
+                    return true;
+                }else{
+                    $this->error[] = $this->__r("validation_error_invalid_url_domain", ["url" => $url, "domain" => $domain, "urldomain" => $parse["host"]]);
+                }
+            }else{
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a value is in URL address format.
+     * 
+     * @param string $url Data to be tested.
+     * @param bool
+     */
+    public function is_url($url): bool
+    {
+        if (filter_var($url, \FILTER_VALIDATE_URL)) {
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_url", ["url" => $url]);
+        return false;
+    }
+
+    /**
+     * Tests if the value is a string.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_string($data): bool 
+    {
+        if(is_string($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_string", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * @see is_string() method
+     */
+    public function is_str($data): bool 
+    {
+        return $this->is_string($data);
+    }
+
+    /**
+     * Tests if the value is a string. It can also test the length of the string.
+     * 
+     * @param $data
+     * @param $lengthRange Default : NULL Example : 10-25
+     * @return bool
+     */
+    public function string($data, $lengthRange = null): bool
+    {
+        if($this->is_string($data)){
+            if(!is_null($lengthRange)){
+                $dataLength = $this->stringLength($data);
+                if(is_numeric($lengthRange)){
+                    if($dataLength == $lengthRange){
+                        return true;
+                    }else{
+                        $this->error[] = $this->__r("validation_error_invalid_string_lenght", ["lenght" => $lengthRange]);
+                        return false;
+                    }
+                }elseif(is_string($lengthRange)){
+                    $lengthRangeExp = explode("-", $lengthRange);
+                    $minLength = $lengthRangeExp[0] ?? 0;
+                    $maxLength = $lengthRangeExp[1] ?? 0;
+                    if($minLength > 0 && $dataLength < $minLength){
+                        $this->error[] = $this->__r("validation_error_invalid_string_minlenght", ["min" => $minLength]);
+                        return false;
+                    }
+                    if($maxLength > 0 && $dataLength > $maxLength){
+                        $this->error[] = $this->__r("validation_error_invalid_string_maxlenght", ["max" => $maxLength]);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_numeric() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_numeric($data): bool
+    {
+        if(is_numeric($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_numeric", ["data" => $data]);
+        return false;
+    } 
+
+    /**
+     * It tests the data with the is_int() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_int($data): bool 
+    {
+        if(is_int($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_integer", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * @see is_int() method
+     */
+    public function is_integer($data): bool 
+    {
+        return $this->is_int($data);
+    }
+
+    /**
+     * Tests an integer to see if it is within a certain range.
+     * 
+     * @param $data
+     * @param $range Default: NULL Example : "50-120"
+     * @return bool
+     */
+    public function integer($data, $range = null): bool 
+    {
+        if($this->is_int($data)){
+            if(!is_null($range)){
+                $rangeExp = explode("-", $range);
+                $min = $rangeExp[0] ?? null;
+                $max = $rangeExp[1] ?? null;
+                if(!is_null($min) && $data < $min){
+                    $this->error[] = $this->__r("validation_error_invalid_integer_min_range", ["min" => $min, "data" => $data]);
+                    return false;
+                }
+                if(!is_null($min) && $data > $max){
+                    $this->error[] = $this->__r("validation_error_invalid_integer_max_range", ["max" => $max, "data" => $data]);
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_resource() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_resource($data): bool
+    {
+        if(is_resource($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_resource", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_float() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_float($data): bool 
+    {
+        if($data){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_float", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * @see is_float() method
+     */
+    public function is_real($data): bool
+    {
+        return $this->is_float($data);
+    }
+
+    /**
+     * @see is_float() method
+     */
+    public function is_double($data): bool 
+    {
+        return $this->is_float($data);
+    }
+
+    /**
+     * It tests the data with the is_object() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_object($data): bool 
+    {
+        if(is_object($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_object", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_array() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_array($data): bool 
+    {
+        if(is_array($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_array", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_null() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_null($data): bool 
+    {
+        if(is_null($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_null", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * It tests the data with the is_bool() function.
+     * 
+     * @param $data
+     * @return bool
+     */
+    public function is_bool($data): bool 
+    {
+        if(is_bool($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_bool", ["data" => $data]);
+        return false;
+    }
+
+    /**
+     * Checks if a value is in IP address format.
+     * 
+     * @param string $ip Data to be tested.
+     * @return bool
+     */
+    public function ip(string $ip): bool
+    {
+        if (filter_var($ip, \FILTER_VALIDATE_IP)) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_ip", ["ip" => $ip]);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a value is in IPv4 address format.
+     * 
+     * @param string $ip Data to be tested.
+     * @return bool
+     */
+    public function ipv4(string $ip): bool
+    {
+        if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_ipv4", ["ipv4" => $ip]);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a value is in IPv6 address format.
+     * 
+     * @param string $ip Data to be tested.
+     * @return bool
+     */
+    public function ipv6(string $ip): bool
+    {
+        if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_ipv6", ["ipv6" => $ip]);
+            return false;
+        }
+    }
+
+    /**
+     * Returns the number of characters in a string.
+     * 
+     * @param string $str Data to be tested.
+     * @return int|false
+     */
+    private function stringLength(string $str)
+    {
+        if(!function_exists("mb_strlen")){
+            return strlen($str);
+        }
+        return mb_strlen($str);
+    }
+
+    /**
+     * Tests the number of characters in a string. Returns true if there are more characters than required, false otherwise.
+     * 
+     * @param string $value Data to be tested.
+     * @param int $min_length Minimum length to be accepted
+     * @return bool
+     */
+    public function minLength(string $value, int $min_length): bool
+    {
+        if ($this->stringLength($value) >= $min_length) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_min_length", ["min_length" => $min_length]);
+            return false;
+        }
+    }
+
+    /**
+     * Tests the number of characters in a string. Returns true if there are as many or less characters as specified, false if more.
+     * 
+     * @param string $value Data to be tested.
+     * @param int $max_length Maksimum length to be accepted
+     * @return bool
+     */
+    public function maxLength(string $value, int $max_length): bool
+    {
+        if ($this->stringLength($value) <= $max_length) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_max_length", ["max_length" => $max_length]);
+            return false;
+        }
+    }
+
+    /**
+     * Tests the smallness of an integer.
+     * 
+     * @param int $value Data to be tested.
+     * @param int $min Minimum number to accept
+     * @param bool
+     */
+    public function min(int $value, int $min): bool
+    {
+        if ($min >= $value) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_min", ["min" => $min]);
+            return false;
+        }
+    }
+
+    /**
+     * Tests the bigness of an integer.
+     * 
+     * @param string $value Data to be tested.
+     * @param int $max Maximum number to accept
+     * @return bool
+     */
+    public function max(string $value, int $max): bool
+    {
+        if ($max <= $value) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_max", ["max" => $max]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Tests a value with a pattern.
+     * 
+     * @param string $value Data to be tested.
+     * @param string $pattern An existing pattern name or the pattern itself.
+     * @return bool
+     */
+    public function regex($value, $pattern): bool
+    {   
+        $temp_pattern = $pattern;
+        $pattern = $this->pattern_regex($pattern);
+        if($pattern === false){
+            $pattern = '/^(' . $temp_pattern . ')$/u';
+        }
+        if (preg_match($pattern, $value)) {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_format", ["data" => $value, "pattern" => $pattern]);
+            return false;
+        }
+    }
+
+    /**
+     * Tests whether a value is of time type.
+     * 
+     * @param string $value Data to be tested.
+     * @return bool
+     */
+    public function date(string $value)
+    {
+        $isDate = false;
+        if ($value instanceof \DateTime) {
+            $isDate = true;
+        } else {
+            $isDate = strtotime($value) !== false;
+        }
+        if (!$isDate) {
+            $this->error[] = $this->__r("validation_error_invalid_date", ["date" => $value]);
+        }
+
+        return $isDate;
+    }
+
+    /**
+     * Tests whether a value is in a certain time format.
+     * 
+     * @param string $value
+     * @param string $format
+     * @return bool
+     */
+    public function dateFormat(string $value, string $format): bool
+    {
+        $dateFormat = date_parse_from_format($format, $value);
+
+        if ($dateFormat['error_count'] === 0 && $dateFormat['warning_count'] === 0) {
+            return true;
+        } else {
+            $this->error[] = $this->__r(
+                "validation_error_invalid_date_format", ["value" => $value, "format" => $format]
+            );
+            return false;
+        }
+    }
+
+    /**
+     * Tests whether a value is blank.
+     * 
+     * @param string $value
+     * @return bool
+     */
+    public function required(string $value): bool
+    {
+        if (trim($value) != "") {
+            return true;
+        } else {
+            $this->error[] = $this->__r("validation_error_invalid_required");
+
+            return false;
+        }
+    }
+
+    /**
+     * Appends data to an associative array for testing with a method.
+     * 
+     * @param string|array $rule The method or methods to be applied to the data.
+     * @param string|array $dataId Key value of data to be tested from preloaded data array
+     * @return self
+     */
+    public function rule($rule, $dataId): self
+    {
+        if (is_string($rule)) {
+            $rule = [$rule];
+        }
+        if (is_string($dataId)) {
+            $dataId = [$dataId];
+        }
+        $this->rule[] = [
+            "rule" => $rule,
+            "dataID" => $dataId
+        ];
+
+        return $this;
+    }
+
+    /**
+     * It tests a data with a method.
+     * 
+     * @param string $rule The method to be applied to the data.
+     * @param string $dataKey Key value of data to be tested from preloaded data array
+     * @return void
+     */
+    public function ruleExecutive(string $rule, string $dataKey): void
+    {
+        $data = [];
+        if (is_string($dataKey)) {
+            $data = [$this->data[$dataKey]];
+        }
+        preg_match("/\((.*)\)/u", $rule, $params);
+        if (isset($params[0])) {
+            $method = preg_replace("/\((.*)\)/u", null, $rule);
+            $data[] = trim($params[0], "()");
+        } else {
+            $method = $rule;
+        }
+        call_user_func_array([__CLASS__, $method], $data);
+    }
+
+
+    /**
+     * It performs the tests previously declared by the rule() method.
+     * 
+     * @return bool
+     */
+    public function validation(): bool
+    {
+        $this->error = [];
+        foreach ($this->rule as $rule) {
+            foreach ($rule['rule'] as $rule_row) {
+                foreach ($rule['dataID'] as $data_row) {
+                    $this->ruleExecutive($rule_row, $data_row);
+                }
+            }
+        }
+        if (sizeof($this->error) > 0) {
+            $return = false;
+        } else {
+            $return = true;
+        }
+        $this->rule = [];
+        return $return;
+    }
+
+    /**
+     * Returns an array of errors that occur during validation operations.
+     * 
+     * @return array|false
+     */
+    public function errors()
+    {
+        if(count($this->error) > 0){
+            return $this->error;
+        }else{
+            return false;
+        }
+    }
+
+    private function __r($key, array $context = [])
+    {
+        $lang = $this->lang[$key] ?? $key;
+        return $this->interpolate($lang, $context);
+    }
+    
+    private function interpolate(string $message, array $context = []): string
+    {
+        $replace = array();
+        $i = 0;
+        foreach ($context as $key => $val) {
+            if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
+                $replace['{' . $key . '}'] = $val;
+                $replace['{' . $i . '}'] = $val;
+                $i++;
+            }
+        }
+
+        return strtr($message, $replace);
+    }
+
+}
