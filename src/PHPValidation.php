@@ -14,7 +14,7 @@
 
 namespace PHPValidation;
 
-class PHPValidation
+class PHPValidation implements \PHPValidation\PHPValidationInterface
 {
     
     /**
@@ -48,6 +48,7 @@ class PHPValidation
         "validation_error_invalid_null" => "{data} is not null.",
         "validation_error_invalid_array" => "{data} is not array.",
         "validation_error_invalid_object" => "{data} is not object.",
+        "validation_error_invalid_class" => "This {data} is not a {class_name} object.",
         "validation_error_invalid_float" => "{data} is not float number.",
         "validation_error_invalid_resource" => "{data} is not resource.",
         "validation_error_invalid_integer" => "{data} is not integer.",
@@ -67,7 +68,8 @@ class PHPValidation
         "validation_error_invalid_format" => "{data} is not in valid {pattern} format",
         "validation_error_invalid_date" => "{date} Is not a valid date",
         "validation_error_invalid_date_format" => "{value} Not a valid {format} date format",
-        "validation_error_invalid_required" => "Cannot be left blank"
+        "validation_error_invalid_required" => "Cannot be left blank",
+        "validation_error_invalid_empty" => "{data} is not empty.",
     ];
 
     /**
@@ -184,11 +186,14 @@ class PHPValidation
     {
         if($this->is_url($url)){
             if($domain != ""){
-                $parse = parse_url($url);
-                if(isset($parse['host']) && $parse['host'] == $domain){
+                $host = parse_url($url, PHP_URL_HOST);
+
+                if($host == $domain){
+                    return true;
+                }elseif(substr($host, -(strlen($domain) + 1)) == ".".$domain){
                     return true;
                 }else{
-                    $this->error[] = $this->__r("validation_error_invalid_url_domain", ["url" => $url, "domain" => $domain, "urldomain" => $parse["host"]]);
+                    $this->error[] = $this->__r("validation_error_invalid_url_domain", ["url" => $url, "domain" => $domain, "urldomain" => $host]);
                 }
             }else{
                 return true;
@@ -247,7 +252,7 @@ class PHPValidation
         if($this->is_string($data)){
             if(!is_null($lengthRange)){
                 $dataLength = $this->stringLength($data);
-                if(is_numeric($lengthRange)){
+                if(is_numeric($lengthRange) && $lengthRange > 0){
                     if($dataLength == $lengthRange){
                         return true;
                     }else{
@@ -266,9 +271,9 @@ class PHPValidation
                         $this->error[] = $this->__r("validation_error_invalid_string_maxlenght", ["max" => $maxLength]);
                         return false;
                     }
-                    return true;
                 }
             }
+            return true;
         }
         return false;
     }
@@ -298,6 +303,8 @@ class PHPValidation
     {
         if(is_int($data)){
             return true;
+        }elseif(is_numeric($data) && abs(abs(floor($data)) - abs($data)) == 0 && !is_float($data)){;
+            return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_integer", ["data" => $data]);
         return false;
@@ -322,14 +329,14 @@ class PHPValidation
     {
         if($this->is_int($data)){
             if(!is_null($range)){
-                $rangeExp = explode("-", $range);
+                $rangeExp = array_filter(explode("-", $range));
                 $min = $rangeExp[0] ?? null;
                 $max = $rangeExp[1] ?? null;
                 if(!is_null($min) && $data < $min){
                     $this->error[] = $this->__r("validation_error_invalid_integer_min_range", ["min" => $min, "data" => $data]);
                     return false;
                 }
-                if(!is_null($min) && $data > $max){
+                if(!is_null($max) && $data > $max){
                     $this->error[] = $this->__r("validation_error_invalid_integer_max_range", ["max" => $max, "data" => $data]);
                     return false;
                 }
@@ -401,6 +408,25 @@ class PHPValidation
     }
 
     /**
+     * Tests the class name of an object.
+     * 
+     * @param object $data
+     * @param string $class_name
+     * @return bool
+     */
+    public function is_class($data, string $class_name): bool
+    {
+        if($this->is_object($data)){
+            $data_name = get_class($data);
+            if($data_name == $class_name){
+                return true;
+            }
+            $this->error[] = $this->__r("validation_error_invalid_class", ["data" => $data_name, "class_name" => $class_name]);
+        }
+        return false;
+    }
+
+    /**
      * It tests the data with the is_array() function.
      * 
      * @param $data
@@ -427,6 +453,15 @@ class PHPValidation
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_null", ["data" => $data]);
+        return false;
+    }
+
+    public function is_empty($data): bool
+    {
+        if(empty($data)){
+            return true;
+        }
+        $this->error[] = $this->__r("validation_error_invalid_empty", ["data" => $data]);
         return false;
     }
 
@@ -604,7 +639,7 @@ class PHPValidation
      * @param string $value Data to be tested.
      * @return bool
      */
-    public function date(string $value)
+    public function date(string $value): bool
     {
         $isDate = false;
         if ($value instanceof \DateTime) {
@@ -643,18 +678,17 @@ class PHPValidation
     /**
      * Tests whether a value is blank.
      * 
-     * @param string $value
+     * @param string|array $data
      * @return bool
      */
-    public function required(string $value): bool
+    public function required($data): bool
     {
-        if (trim($value) != "") {
+        if((is_string($data) && trim($data) != "") || !empty($data)) {
             return true;
-        } else {
-            $this->error[] = $this->__r("validation_error_invalid_required");
-
-            return false;
         }
+        $this->error[] = $this->__r("validation_error_invalid_required");
+
+        return false;
     }
 
     /**
