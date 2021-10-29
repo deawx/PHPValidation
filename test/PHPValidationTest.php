@@ -100,5 +100,34 @@ class PHPValidationTest extends \PHPTester\PHPTester
         $this->isFalse($this->lib->integer("hello"));
     }
 
+    public function test_rule()
+    {
+        $test = $this->lib->set(["dataName" => "info@test.com"]);
+        $test->rule("required", "dataName");
+        $test->rule("is_string", "dataName");
+        $test->rule("is_mail", "dataName");
+        
+        $this->isTrue($test->validation());
+
+        $test = $this->lib->set(["dataName" => "hello"]);
+        $test->rule("required", "dataName");
+        $test->rule("is_int", "dataName");
+
+        $this->isFalse($test->validation());
+    }
+
+    public function test_rule_required()
+    {
+        $data = "";
+        if(isset($_GET["test"])){
+            echo "get:".PHP_EOL;
+            $data = $_GET["test"];
+        }
+        $test = $this->lib->set(["dataName" => $data]);
+        $test->rule("required", "dataName");
+        
+        $this->isFalse($test->validation());
+    }
+
 }
 

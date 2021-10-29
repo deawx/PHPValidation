@@ -8,7 +8,7 @@
  * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
  * @copyright  Copyright © 2021 PHPValidation
  * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
- * @version    1.0
+ * @version    1.0.5
  * @link       https://www.muhammetsafak.com.tr
  */
 namespace PHPValidation;
@@ -89,5 +89,9 @@ interface PHPValidationInterface
     public function validation(): bool;
 
     public function errors();
+
+    public function error_method(): string;
+
+    public function __rSet(string $key, string $value): void;
 
 }

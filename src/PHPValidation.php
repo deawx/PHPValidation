@@ -8,7 +8,7 @@
  * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
  * @copyright  Copyright © 2021 PHPValidation
  * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
- * @version    1.0
+ * @version    1.0.5
  * @link       https://www.muhammetsafak.com.tr
  */
 
@@ -77,6 +77,9 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public $error = [];
 
+
+    public $error_method = '';
+
     /**
      * @var array
      */
@@ -144,6 +147,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function mail($mail, $domain = ""): bool
     {
+        $this->error_method = 'mail';
         if($this->is_mail($mail)){
             if($domain != ""){
                 [$mailuser, $maildomain] = explode("@", $mail);
@@ -167,6 +171,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_mail($mail): bool
     {
+        $this->error_method = 'is_mail';
         if(filter_var($mail, \FILTER_VALIDATE_EMAIL)){
             return true;
         }else{
@@ -184,6 +189,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function url($url, $domain = ""): bool
     {
+        $this->error_method = 'url';
         if($this->is_url($url)){
             if($domain != ""){
                 $host = parse_url($url, PHP_URL_HOST);
@@ -210,6 +216,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_url($url): bool
     {
+        $this->error_method = 'is_url';
         if (filter_var($url, \FILTER_VALIDATE_URL)) {
             return true;
         }
@@ -225,6 +232,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_string($data): bool 
     {
+        $this->error_method = 'is_string';
         if(is_string($data)){
             return true;
         }
@@ -237,6 +245,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_str($data): bool 
     {
+        $this->error_method = 'is_str';
         return $this->is_string($data);
     }
 
@@ -249,6 +258,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function string($data, $lengthRange = null): bool
     {
+        $this->error_method = 'string';
         if($this->is_string($data)){
             if(!is_null($lengthRange)){
                 $dataLength = $this->stringLength($data);
@@ -286,6 +296,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_numeric($data): bool
     {
+        $this->error_method = 'is_numeric';
         if(is_numeric($data)){
             return true;
         }
@@ -301,6 +312,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_int($data): bool 
     {
+        $this->error_method = 'is_int';
         if(is_int($data)){
             return true;
         }elseif(is_numeric($data) && abs(abs(floor($data)) - abs($data)) == 0 && !is_float($data)){;
@@ -315,6 +327,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_integer($data): bool 
     {
+        $this->error_method = 'is_integer';
         return $this->is_int($data);
     }
 
@@ -327,6 +340,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function integer($data, $range = null): bool 
     {
+        $this->error_method = 'integer';
         if($this->is_int($data)){
             if(!is_null($range)){
                 $rangeExp = array_filter(explode("-", $range));
@@ -354,6 +368,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_resource($data): bool
     {
+        $this->error_method = 'is_resource';
         if(is_resource($data)){
             return true;
         }
@@ -369,6 +384,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_float($data): bool 
     {
+        $this->error_method = 'is_float';
         if($data){
             return true;
         }
@@ -381,6 +397,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_real($data): bool
     {
+        $this->error_method = 'is_real';
         return $this->is_float($data);
     }
 
@@ -389,6 +406,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_double($data): bool 
     {
+        $this->error_method = 'is_double';
         return $this->is_float($data);
     }
 
@@ -400,6 +418,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_object($data): bool 
     {
+        $this->error_method = 'is_object';
         if(is_object($data)){
             return true;
         }
@@ -416,6 +435,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_class($data, string $class_name): bool
     {
+        $this->error_method = 'is_class';
         if($this->is_object($data)){
             $data_name = get_class($data);
             if($data_name == $class_name){
@@ -434,6 +454,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_array($data): bool 
     {
+        $this->error_method = 'is_array';
         if(is_array($data)){
             return true;
         }
@@ -449,6 +470,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_null($data): bool 
     {
+        $this->error_method = 'is_null';
         if(is_null($data)){
             return true;
         }
@@ -458,6 +480,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
 
     public function is_empty($data): bool
     {
+        $this->error_method = 'is_empty';
         if(empty($data)){
             return true;
         }
@@ -473,6 +496,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function is_bool($data): bool 
     {
+        $this->error_method = 'is_bool';
         if(is_bool($data)){
             return true;
         }
@@ -488,6 +512,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function ip(string $ip): bool
     {
+        $this->error_method = 'ip';
         if (filter_var($ip, \FILTER_VALIDATE_IP)) {
             return true;
         } else {
@@ -504,6 +529,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function ipv4(string $ip): bool
     {
+        $this->error_method = 'ipv4';
         if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
             return true;
         } else {
@@ -520,6 +546,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function ipv6(string $ip): bool
     {
+        $this->error_method = 'ipv6';
         if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
             return true;
         } else {
@@ -551,6 +578,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function minLength(string $value, int $min_length): bool
     {
+        $this->error_method = 'minLength';
         if ($this->stringLength($value) >= $min_length) {
             return true;
         } else {
@@ -568,6 +596,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function maxLength(string $value, int $max_length): bool
     {
+        $this->error_method = 'maxLength';
         if ($this->stringLength($value) <= $max_length) {
             return true;
         } else {
@@ -585,6 +614,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function min(int $value, int $min): bool
     {
+        $this->error_method = 'min';
         if ($min >= $value) {
             return true;
         } else {
@@ -602,6 +632,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function max(string $value, int $max): bool
     {
+        $this->error_method = 'max';
         if ($max <= $value) {
             return true;
         } else {
@@ -620,6 +651,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function regex($value, $pattern): bool
     {   
+        $this->error_method = 'regex';
         $temp_pattern = $pattern;
         $pattern = $this->pattern_regex($pattern);
         if($pattern === false){
@@ -641,6 +673,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function date(string $value): bool
     {
+        $this->error_method = 'date';
         $isDate = false;
         if ($value instanceof \DateTime) {
             $isDate = true;
@@ -663,6 +696,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function dateFormat(string $value, string $format): bool
     {
+        $this->error_method = 'dateFormat';
         $dateFormat = date_parse_from_format($format, $value);
 
         if ($dateFormat['error_count'] === 0 && $dateFormat['warning_count'] === 0) {
@@ -683,6 +717,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function required($data): bool
     {
+        $this->error_method = 'required';
         if((is_string($data) && trim($data) != "") || !empty($data)) {
             return true;
         }
@@ -776,10 +811,20 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         }
     }
 
+    public function error_method(): string
+    {
+        return $this->error_method;
+    }
+
     private function __r($key, array $context = [])
     {
         $lang = $this->lang[$key] ?? $key;
         return $this->interpolate($lang, $context);
+    }
+
+    public function __rSet(string $key, string $value): void
+    {
+        $this->lang[$key] = $value;
     }
     
     private function interpolate(string $message, array $context = []): string
