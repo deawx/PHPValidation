@@ -8,14 +8,18 @@
  * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
  * @copyright  Copyright © 2021 PHPValidation
  * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
- * @version    1.0.5
+ * @version    1.0.6
  * @link       https://www.muhammetsafak.com.tr
  */
+
+declare(strict_types=1);
 
 namespace PHPValidation;
 
 class PHPValidation implements \PHPValidation\PHPValidationInterface
 {
+
+    private string $version = '1.0.6';
     
     /**
      * @var array
@@ -90,6 +94,11 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public $rule = [];
 
+    public function version(): string
+    {
+        return $this->version;
+    }
+
     /**
      * Include the data to be validated as an associative array.
      * 
@@ -131,11 +140,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     private function pattern_regex(string $pattern_name)
     {
-        if(isset($this->patterns[$pattern_name])){
-            return '/^(' . $this->patterns[$pattern_name] . ')$/u';
-        }else{
-            return false;
-        }
+        return isset($this->patterns[$pattern_name]) ? '/^(' . $this->patterns[$pattern_name] . ')$/u' : false;
     }
 
     /**
@@ -150,7 +155,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         $this->error_method = 'mail';
         if($this->is_mail($mail)){
             if($domain != ""){
-                [$mailuser, $maildomain] = explode("@", $mail);
+                [$mailuser, $maildomain] = \explode("@", $mail, 2);
                 if($maildomain == $domain){
                     return true;
                 }else{
@@ -172,7 +177,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_mail($mail): bool
     {
         $this->error_method = 'is_mail';
-        if(filter_var($mail, \FILTER_VALIDATE_EMAIL)){
+        if(\filter_var($mail, \FILTER_VALIDATE_EMAIL)){
             return true;
         }else{
             $this->error[] = $this->__r("validation_error_invalid_mail", ["mail" => $mail]);
@@ -192,11 +197,11 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         $this->error_method = 'url';
         if($this->is_url($url)){
             if($domain != ""){
-                $host = parse_url($url, PHP_URL_HOST);
+                $host = \parse_url($url, PHP_URL_HOST);
 
                 if($host == $domain){
                     return true;
-                }elseif(substr($host, -(strlen($domain) + 1)) == ".".$domain){
+                }elseif(\substr($host, -(\strlen($domain) + 1)) == ".".$domain){
                     return true;
                 }else{
                     $this->error[] = $this->__r("validation_error_invalid_url_domain", ["url" => $url, "domain" => $domain, "urldomain" => $host]);
@@ -217,7 +222,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_url($url): bool
     {
         $this->error_method = 'is_url';
-        if (filter_var($url, \FILTER_VALIDATE_URL)) {
+        if (\filter_var($url, \FILTER_VALIDATE_URL)) {
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_url", ["url" => $url]);
@@ -233,7 +238,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_string($data): bool 
     {
         $this->error_method = 'is_string';
-        if(is_string($data)){
+        if(\is_string($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_string", ["data" => $data]);
@@ -260,17 +265,17 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     {
         $this->error_method = 'string';
         if($this->is_string($data)){
-            if(!is_null($lengthRange)){
+            if($lengthRange !== null){
                 $dataLength = $this->stringLength($data);
-                if(is_numeric($lengthRange) && $lengthRange > 0){
+                if(\is_numeric($lengthRange) && $lengthRange > 0){
                     if($dataLength == $lengthRange){
                         return true;
                     }else{
                         $this->error[] = $this->__r("validation_error_invalid_string_lenght", ["lenght" => $lengthRange]);
                         return false;
                     }
-                }elseif(is_string($lengthRange)){
-                    $lengthRangeExp = explode("-", $lengthRange);
+                }elseif(\is_string($lengthRange)){
+                    $lengthRangeExp = \explode("-", $lengthRange, 2);
                     $minLength = $lengthRangeExp[0] ?? 0;
                     $maxLength = $lengthRangeExp[1] ?? 0;
                     if($minLength > 0 && $dataLength < $minLength){
@@ -297,7 +302,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_numeric($data): bool
     {
         $this->error_method = 'is_numeric';
-        if(is_numeric($data)){
+        if(\is_numeric($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_numeric", ["data" => $data]);
@@ -313,9 +318,9 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_int($data): bool 
     {
         $this->error_method = 'is_int';
-        if(is_int($data)){
+        if(\is_int($data)){
             return true;
-        }elseif(is_numeric($data) && abs(abs(floor($data)) - abs($data)) == 0 && !is_float($data)){;
+        }elseif(\is_numeric($data) && \abs(\abs(\floor($data)) - \abs($data)) == 0 && !\is_float($data)){;
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_integer", ["data" => $data]);
@@ -335,22 +340,22 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      * Tests an integer to see if it is within a certain range.
      * 
      * @param $data
-     * @param $range Default: NULL Example : "50-120"
+     * @param string|null $range Default: NULL Example : "50-120"
      * @return bool
      */
-    public function integer($data, $range = null): bool 
+    public function integer($data, ?string $range = null): bool
     {
         $this->error_method = 'integer';
         if($this->is_int($data)){
-            if(!is_null($range)){
-                $rangeExp = array_filter(explode("-", $range));
+            if($range !== null){
+                $rangeExp = \array_filter(\explode("-", $range, 2));
                 $min = $rangeExp[0] ?? null;
                 $max = $rangeExp[1] ?? null;
-                if(!is_null($min) && $data < $min){
+                if($min !== null && $data < $min){
                     $this->error[] = $this->__r("validation_error_invalid_integer_min_range", ["min" => $min, "data" => $data]);
                     return false;
                 }
-                if(!is_null($max) && $data > $max){
+                if($max !== null && $data > $max){
                     $this->error[] = $this->__r("validation_error_invalid_integer_max_range", ["max" => $max, "data" => $data]);
                     return false;
                 }
@@ -369,7 +374,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_resource($data): bool
     {
         $this->error_method = 'is_resource';
-        if(is_resource($data)){
+        if(\is_resource($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_resource", ["data" => $data]);
@@ -385,7 +390,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_float($data): bool 
     {
         $this->error_method = 'is_float';
-        if($data){
+        if(\is_float($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_float", ["data" => $data]);
@@ -419,7 +424,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_object($data): bool 
     {
         $this->error_method = 'is_object';
-        if(is_object($data)){
+        if(\is_object($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_object", ["data" => $data]);
@@ -437,7 +442,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     {
         $this->error_method = 'is_class';
         if($this->is_object($data)){
-            $data_name = get_class($data);
+            $data_name = \get_class($data);
             if($data_name == $class_name){
                 return true;
             }
@@ -455,7 +460,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_array($data): bool 
     {
         $this->error_method = 'is_array';
-        if(is_array($data)){
+        if(\is_array($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_array", ["data" => $data]);
@@ -471,7 +476,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_null($data): bool 
     {
         $this->error_method = 'is_null';
-        if(is_null($data)){
+        if($data === null){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_null", ["data" => $data]);
@@ -497,7 +502,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function is_bool($data): bool 
     {
         $this->error_method = 'is_bool';
-        if(is_bool($data)){
+        if(\is_bool($data)){
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_bool", ["data" => $data]);
@@ -513,7 +518,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function ip(string $ip): bool
     {
         $this->error_method = 'ip';
-        if (filter_var($ip, \FILTER_VALIDATE_IP)) {
+        if (\filter_var($ip, \FILTER_VALIDATE_IP)) {
             return true;
         } else {
             $this->error[] = $this->__r("validation_error_invalid_ip", ["ip" => $ip]);
@@ -530,7 +535,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function ipv4(string $ip): bool
     {
         $this->error_method = 'ipv4';
-        if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
+        if (\filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
             return true;
         } else {
             $this->error[] = $this->__r("validation_error_invalid_ipv4", ["ipv4" => $ip]);
@@ -547,7 +552,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function ipv6(string $ip): bool
     {
         $this->error_method = 'ipv6';
-        if (filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
+        if (\filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
             return true;
         } else {
             $this->error[] = $this->__r("validation_error_invalid_ipv6", ["ipv6" => $ip]);
@@ -563,10 +568,10 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     private function stringLength(string $str)
     {
-        if(!function_exists("mb_strlen")){
-            return strlen($str);
+        if(!\function_exists("mb_strlen")){
+            return \strlen($str);
         }
-        return mb_strlen($str);
+        return \mb_strlen($str);
     }
 
     /**
@@ -657,7 +662,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         if($pattern === false){
             $pattern = '/^(' . $temp_pattern . ')$/u';
         }
-        if (preg_match($pattern, $value)) {
+        if (\preg_match($pattern, $value)) {
             return true;
         } else {
             $this->error[] = $this->__r("validation_error_invalid_format", ["data" => $value, "pattern" => $pattern]);
@@ -678,7 +683,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         if ($value instanceof \DateTime) {
             $isDate = true;
         } else {
-            $isDate = strtotime($value) !== false;
+            $isDate = \strtotime($value) !== false;
         }
         if (!$isDate) {
             $this->error[] = $this->__r("validation_error_invalid_date", ["date" => $value]);
@@ -697,7 +702,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function dateFormat(string $value, string $format): bool
     {
         $this->error_method = 'dateFormat';
-        $dateFormat = date_parse_from_format($format, $value);
+        $dateFormat = \date_parse_from_format($format, $value);
 
         if ($dateFormat['error_count'] === 0 && $dateFormat['warning_count'] === 0) {
             return true;
@@ -718,7 +723,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function required($data): bool
     {
         $this->error_method = 'required';
-        if((is_string($data) && trim($data) != "") || !empty($data)) {
+        if((\is_string($data) && \trim($data) != "") || !empty($data)) {
             return true;
         }
         $this->error[] = $this->__r("validation_error_invalid_required");
@@ -735,10 +740,10 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function rule($rule, $dataId): self
     {
-        if (is_string($rule)) {
+        if (\is_string($rule)) {
             $rule = [$rule];
         }
-        if (is_string($dataId)) {
+        if (\is_string($dataId)) {
             $dataId = [$dataId];
         }
         $this->rule[] = [
@@ -759,17 +764,16 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
     public function ruleExecutive(string $rule, string $dataKey): void
     {
         $data = [];
-        if (is_string($dataKey)) {
-            $data = [$this->data[$dataKey]];
-        }
-        preg_match("/\((.*)\)/u", $rule, $params);
+        $data = [$this->data[$dataKey]];
+
+        \preg_match("/\((.*)\)/u", $rule, $params);
         if (isset($params[0])) {
-            $method = preg_replace("/\((.*)\)/u", null, $rule);
-            $data[] = trim($params[0], "()");
+            $method = \preg_replace("/\((.*)\)/u", '', $rule);
+            $data[] = \trim($params[0], "()");
         } else {
             $method = $rule;
         }
-        call_user_func_array([__CLASS__, $method], $data);
+        \call_user_func_array([__CLASS__, $method], $data);
     }
 
 
@@ -788,7 +792,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
                 }
             }
         }
-        if (sizeof($this->error) > 0) {
+        if (\count($this->error) > 0) {
             $return = false;
         } else {
             $return = true;
@@ -804,7 +808,7 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
      */
     public function errors()
     {
-        if(count($this->error) > 0){
+        if(\count($this->error) > 0){
             return $this->error;
         }else{
             return false;
@@ -832,14 +836,14 @@ class PHPValidation implements \PHPValidation\PHPValidationInterface
         $replace = array();
         $i = 0;
         foreach ($context as $key => $val) {
-            if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
+            if (!\is_array($val) && (!\is_object($val) || \method_exists($val, '__toString'))) {
                 $replace['{' . $key . '}'] = $val;
                 $replace['{' . $i . '}'] = $val;
                 $i++;
             }
         }
 
-        return strtr($message, $replace);
+        return \strtr($message, $replace);
     }
 
 }

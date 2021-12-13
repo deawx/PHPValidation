@@ -8,19 +8,22 @@
  * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
  * @copyright  Copyright © 2021 PHPValidation
  * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
- * @version    1.0.5
+ * @version    1.0.6
  * @link       https://www.muhammetsafak.com.tr
  */
+
+declare(strict_types=1);
+
 namespace PHPValidation;
 
 interface PHPValidationInterface 
 {
 
-    public function set(array $data = []): self;
+    public function set(array $data = []): PHPValidationInterface;
 
-    public function addSet($key, $value): self;
+    public function addSet($key, $value): PHPValidationInterface;
 
-    public function pattern(string $name, string $pattern): self;
+    public function pattern(string $name, string $pattern): PHPValidationInterface;
 
     public function mail($mail, $domain = ""): bool;
 
