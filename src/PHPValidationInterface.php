@@ -8,7 +8,7 @@
  * @author     Muhammet ŞAFAK <info@muhammetsafak.com.tr>
  * @copyright  Copyright © 2021 PHPValidation
  * @license    http://www.gnu.org/licenses/gpl-3.0.txt  GNU GPL 3.0
- * @version    1.0.6
+ * @version    1.0.7
  * @link       https://www.muhammetsafak.com.tr
  */
 
@@ -57,9 +57,13 @@ interface PHPValidationInterface
 
     public function is_object($data): bool;
 
+    public function is_class($data, $class_name): bool;
+
     public function is_array($data): bool;
 
     public function is_null($data): bool;
+
+    public function is_empty($data): bool;
 
     public function is_bool($data): bool;
 
@@ -83,7 +87,7 @@ interface PHPValidationInterface
 
     public function dateFormat(string $value, string $format): bool;
 
-    public function required($value): bool;
+    public function required($data): bool;
 
     public function rule($rule, $dataId): self;
 
