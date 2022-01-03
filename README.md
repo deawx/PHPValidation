@@ -2,7 +2,6 @@
 
 It is an open source library that can be used to test and validate data.
 
-[![Latest Stable Version](http://poser.pugx.org/muhametsafak/PHPValidation/v)](https://packagist.org/packages/muhametsafak/PHPValidation)
 [![Version](http://poser.pugx.org/muhametsafak/PHPValidation/version)](https://packagist.org/packages/muhametsafak/PHPValidation)
 [![License](http://poser.pugx.org/muhametsafak/PHPValidation/license)](https://packagist.org/packages/muhametsafak/PHPValidation)
 [![Total Downloads](http://poser.pugx.org/muhametsafak/PHPValidation/downloads)](https://packagist.org/packages/muhametsafak/PHPValidation)
@@ -26,12 +25,6 @@ Yb,  88      `8bYb, `88       88 Yb,  88      `8bYb, `88       d8'          IP'`
 composer require muhametsafak/phpvalidation
 ```
 
-or *Manuel Installation* : 
-
-```php
-require "src/PHPValidation.php";
-```
-
 # Using
 
 Create an object with the `\PHPValidation\PHPValidation` class.
@@ -40,206 +33,278 @@ Create an object with the `\PHPValidation\PHPValidation` class.
 $val = new \PHPValidation\PHPValidation();
 ```
 
-# METHODS
+# Validation Rules
 
-`is_mail()` : Checks if a value is in email address format.
+- `integer` : Verifies that the data is an integer.
+- `float` : Verifies that the data is a floating point number.
+- `numeric` : Verifies that the data is a numeric value.
+- `string` : Verifies that the data is of a string type.
+- `boolean` : Verifies that the data has a logical value or equivalent.
+- `array` : Verifies that the data is an array.
+- `mail` : Verifies that the data is an E-Mail address.
+- `mailHost` : Verifies that the data is the E-Mail address using the specified host.
+- `url` : Verifies that the data is a URL address.
+- `urlHost` : Verifies that the data is a URL of the specified host (or subdomain).
+- `empty` : Verifies that the data is empty.
+- `required` : Verifies that the data is not null.
+- `min` : Defines the minimum value the data can have. Specifies the minimum number of elements/characters if the data is a string or array.
+- `max` : Defines the maximum value the data can have. Specifies the maximum number of elements/characters if the data is a string or array.
+- `length` : Verifies that the number of characters is within the specified range.
+- `regex` : Validates data with a predefined or postdefined regular expression.
+- `date` : Attempts to verify that the data is a date.
+- `dateFormat` : Verifies that the data is a date in a specified format.
+- `ip` : Verifies that the data is IP address.
+- `ipv4` : Verifies that the data is IPv4.
+- `ipv6` : Verifies that the data is IPv6.
+- `repeat` : Verifies that the data is the same as the value of a data key.
+- `equals` : Verifies that the data is equivalent to the specified value.
+- `startWith` : Verifies that the data starts with the specified value.
+- `endWith` : Array or String. Verifies that the data ends with the specified value.
+- `in` : Array or String. Verifies that the specified value is contained in the data.
+- `notIn` : Array or String. Verifies that the specified value does not exist in the data.
+- `alpha` : Verifies that the data is an alpha value.
+- `alphaNum` : Verifies that the data is an alphanumeric value.
+- `creditCard` : Verifies that the data is a credit card number.
+- `only` : It validates only one of the specified values, case-insensitively.
+- `strictOnly` : Case sensitive only validates that it is one of the values specified.
+- `optional` : If there is data, it must obey the rules, but if there is no data with the corresponding key, the validation will not fail.
+
+# Methods
+
+### `version()`
+
+Returns the version of the library.
 
 ```php
-$val->is_mail("info@muhammetsafak.com.tr"); //true
+public function version(): string
 ```
 
-`mail()` : Checks if a value is in email address format. You can also test the domain information used by the e-mail address.
+### `withData()`
+
+Returns a copy of the library, loading the specified data directory.
 
 ```php
-$val->mail("info@muhammetsafak.com.tr"); //true
-
-$val->mail("info@muhammetsafak.com.tr", "gmail.com"); //false
+public function withData(array $data = []): self
 ```
 
-`is_url()` : Checks if a value is in URL address format.
+### `locale()`
+
+Imports translations from the localization file.
 
 ```php
-$val->is_url("http://www.google.com"); //true
+public function locale(?string $localePath = null): self
 ```
 
-`url()` : Checks if a value is in URL address format. It can also test the domain (host) information of the URL.
+### `pattern()`
+
+Defines a named regular expression pattern.
 
 ```php
-$val->url("http://www.google.com"); //true
-$val->url("http://www.google.com", "duckduckgo.com"); //false
+public function pattern(string $name, string $pattern): self
 ```
 
-`is_string()` or `is_str()` : Tests if the value is a string.
+### `rule()`
+
+Adds a rule.
 
 ```php
-$val->is_string("Hello World"); //true
+public function rule(string|array $rule, string|array $dataKey): self
 ```
 
-`string()` : Tests if the value is a string. It can also test the length of the string.
+`$rule` : You can define multiple rules at once as a array or as a string separated by `|`. You can see the ready-made rules you can use [here](#validation-rules).
+
+`$dataKey` : Defines the keys of the data to which the defined rules will be applied. If you want to add more than one, you can specify it as an array or as a string separated by `|`.
+
+### `ruleClosure()`
+
+It allows you to write your own validation method with a callable function.
 
 ```php
-$val->string("Hello World"); //true
-$val->string("Hello World", "11-15"); //true
-$val->string("Hello World", "12-15"); //false
-//3 and above
-$val->string("Hello", "3-"); // true 
-//7 and below
-$val->string("Hello", "-7"); // false
+public function ruleClosure(\Closure $closure, array|string $dataKey, string $errorMsg = ''): self
 ```
 
-`is_numeric()` : It tests the data with the *is_numeric()* function.
+### `ruleFunction()`
+
+Defines a rule using a predefined function.
 
 ```php
-$val->is_numeric("8"); //true
-$val->is_numeric(8); //true
-$val->is_numeric(8.0); //true
-$val->is_numeric("Hello"); //false
+public function ruleFunction(string $function, string|array $dataKey, string $errorMsg = ''): self
 ```
 
-`is_int()` or `is_integer()` : It tests the data with the *is_int()* function.
+### `ruleMethod()`
+
+Defines a class or object's method and rule.
 
 ```php
-$val->is_int("15"); //false
-$val->is_int(15); //true
-$val->is_int(15.0); //false
+public function ruleMethod(string|object $classOrObject, string $method, string|array $dataKey, string $errorMsg = ''): self
 ```
 
-`integer()` : Tests an integer to see if it is within a certain range.
+### `validation()`
+
+Validates data within specified rules.
 
 ```php
-$val->integer(15); //true
-
-//Minimum 5, Maximum 10
-$val->integer(9, "5-10"); //true
-
-//Minimum 10
-$val->integer(5, "10-"); //false
-//Maximum 8
-$val->integer(8, "-8"); //true
+public function validation(): bool
 ```
 
-`is_float()` or `is_double()` or `is_real()` : It tests the data with the *is_float()* function.
+### `data()`
+
+Returns the value of a data.
 
 ```php
-$val->is_float(5); //false
-$val->is_float(5.0); //true
-$val->is_float(1e7); //true
+public function data(string $key): mixed|null
 ```
 
-`ip()` : Checks if a value is in IP address format.
+### `error()`
 
-`ipv4()` : Checks if a value is in IPv4 address format.
-
-`ipv6()` : Checks if a value is in IPv6 address format.
-
-`minLength()` : Tests the number of characters in a string. Returns true if there are more characters than required, false otherwise.
+It adds an external error so that the validation fails.
 
 ```php
-$val->minLength("Hello", 3); //true
-$val->minLength("Hello", 10); //false
+public function error(string $error): self
 ```
 
-`maxLength()` : Tests the number of characters in a string. Returns true if there are as many or less characters as specified, false if more.
+### `errors()`
+
+Returns the errors that occurred as an array. An empty array is returned if there are no errors.
 
 ```php
-$val->maxLength("Hello", 3); //false
-$val->maxLength("Hello", 10); //true
+public function errors(): array
 ```
 
-`max()` : Tests the bigness of an integer.
+### `labels()`
+
+Defines the string to replace the key ({field}) of the data on errors.
 
 ```php
-//Maximum 5
-$val->max(3, 5); //true
-$val->max(5, 5); //true
-$val->max(6, 5); //false
+public function labels(array $labels): self
 ```
 
-`min()` : Tests the smallness of an integer.
+# Localization
+
+Copy the code below and place it in a php file. After localizing and saving it, it tells the `locale()` method the full path of your file.
 
 ```php
-//Minimum 5
-$val->min(4, 5); //false
-$val->min(5, 5); //true
-$val->min(6, 5); //true
+<?php
+return [
+    'labels'            => [],
+    'integer'           => '{field} must be an integer.',
+    'float'             => '{field} must be an float.',
+    'numeric'           => '{field} must be an numeric.',
+    'string'            => '{field} must be an string.',
+    'boolean'           => '{field} must be an boolean',
+    'array'             => '{field} must be an Array.',
+    'mail'              => '{field} must be an E-Mail address.',
+    'mailHost'          => '{field} the email must be a {2} mail.',
+    'url'               => '{field} must be an URL address.',
+    'urlHost'           => 'The host of the {field} url must be {2}.',
+    'empty'             => '{field} must be empty.',
+    'required'          => '{field} cannot be left blank.',
+    'min'               => '{field} must be greater than or equal to {2}.',
+    'max'               => '{field} must be no more than {2}.',
+    'length'            => 'The {field} length range must be {2}.',
+    'regex'             => '{field} must match the {2} pattern.',
+    'date'              => '{field} must be a date.',
+    'dateFormat'        => '{field} must be a correct date format.',
+    'ip'                => '{field} must be the IP Address.',
+    'ipv4'              => '{field} must be the IPv4 Address.',
+    'ipv6'              => '{field} must be the IPv6 Address.',
+    'repeat'            => '{field} must be the same as {field1}',
+    'equals'            => '{field} can only be {2}.',
+    'startWith'         => '{field} must start with "{2}".',
+    'endWith'           => '{field} must end with "{2}".',
+    'in'                => '{field} must contain {2}.',
+    'notIn'             => '{field} must not contain {2}.',
+    'alpha'             => '{field} must contain only alpha characters.',
+    'alphaNum'          => '{field} can only be alphanumeric.',
+    'creditCard'        => '{field} must be a credit card number.',
+    'only'              => 'The {field} value is not valid.',
+    'strictOnly'        => 'The {field} value is not valid.',
+    'custom_closure'    => '{field} could not be verified.',
+    'custom_function'   => '{field} could not be verified.',
+    'custom_method'     => '{field} could not be verified.',
+];
 ```
 
-`date()` : Tests whether a value is of time type.
-
 ```php
-$val->date("2021-10-03"); //true
+$validation->locale(__DIR__ . '/lang.php');
 ```
 
-`dateFormat()` : Tests whether a value is in a certain time format. It uses the *date_parse_from_format()* function.
+# Usage
 
 ```php
-$date = date("d-m-Y H:i");
-$val->dateFormat($date, "d-m-Y H:i"); //true
-$val->dateFormat($date, "d-m-Y"); //false
-```
+$validation = new \PHPValidation\PHPValidation($_POST ?? []);
 
-`required()` : Tests whether a value is blank.
+/**
+ * Both "username" and "password" must be 
+ * a non-empty string.
+ */
+$validation->rule(['required', 'string'], ['username', 'password']);
 
-```php
-$val->required(""); //false
-$val->required("hello"); //true
-```
+/**
+ * The method may need one or more parameters 
+ * for the validation process.
+ * 
+ * You can send the required parameter 
+ * in parenthesis "()".
+ */
+/**
+ * In the examples below you can see an example 
+ * of sending parameters for length validation.
+ * 
+ * "username" can be a minimum of 3 characters 
+ * and a maximum of 255 characters.
+ * "password" must be at least 8 characters.
+ */
+$validation->rule('length(3-255)', 'username');
+$validation->rule('length(8-)', 'password');
 
-# ERRORS and Language
+/**
+ * If the rule takes more than one parameter, 
+ * you can send the parameters with comma ",".
+ */
+/**
+ * Below you can see an example of sending multiple
+ * parameters to the only() role, 
+ * which may need multiple parameters to work.
+ */
+/**
+ * Specified that if there is a value 
+ * with the key "gender" it can 
+ * only be "male" or "female".
+ */
+$validation->rule('only(male,female)|optional', 'gender');
 
-`errors()` : Returns an array of errors that occur during validation operations.
-
-```php
-$val->is_int("Hello");
-
-$errors = $val->errors();
-if($errors !== FALSE){
-    foreach($erros as $err){
-        echo "Error : " . $err . "<br/>" . PHP_EOL;
+if($validation->validation()){
+    // Success
+}else{
+    // Error: Validation Failed.
+    foreach($validation->errors() as $err){
+        echo $err . '<br />' . \PHP_EOL;
     }
 }
 ```
-Output :
 
-```
-Error : Hello is not integer.
-```
-
-You can translate the array in the `$lang` property into your language.
-
-Default : 
+You can report an error with the `error()` method to fail the validation for any reason.
 
 ```php
-$val->lang = [
-    "validation_error_invalid_mail" => "{mail} e-mail address is not valid.",
-    "validation_error_invalid_mail_domain" => "The domain of your email address ({mail}) should be {domain}, not {maildomain}.",
-    "validation_error_invalid_url" => "{url} URL address is not valid.",
-    "validation_error_invalid_url_domain" => "The domain of the url address ({url}) should be {domain}, not {urldomain}.",
-    "validation_error_invalid_bool" => "{data} is not bool.",
-    "validation_error_invalid_null" => "{data} is not null.",
-    "validation_error_invalid_array" => "{data} is not array.",
-    "validation_error_invalid_object" => "{data} is not object.",
-    "validation_error_invalid_float" => "{data} is not float number.",
-    "validation_error_invalid_resource" => "{data} is not resource.",
-    "validation_error_invalid_integer" => "{data} is not integer.",
-    "validation_error_invalid_integer_min_range" => "({data}) it cannot be less than {min}.",
-    "validation_error_invalid_integer_max_range" => "({data}) It cannot be greater than {max}.",
-    "validation_error_invalid_numeric" => "{data} is not numeric.",
-    "validation_error_invalid_ip" => "{ip} IP address is not valid",
-    "validation_error_invalid_ipv4" => "{ipv4} IPv4 address is not valid",
-    "validation_error_invalid_ipv6" => "{ipv6} IPv6 address is not valid",
-    "validation_error_invalid_string_lenght" => "Its length should be {lenght}.",
-    "validation_error_invalid_string_minlenght" => "It must be at least {min} in length.",
-    "validation_error_invalid_string_maxlenght" => "The length should be no more than {max}.",
-    "validation_error_invalid_min_length" => "The text must contain at least {min_length} characters.",
-    "validation_error_invalid_max_length" => "Text can contain up to {max_length} characters.",
-    "validation_error_invalid_min" => "Must be a number less than or equal to {min}",
-    "validation_error_invalid_max" => "Must be a number greater than or equal to {max}",
-    "validation_error_invalid_format" => "{data} is not in valid {pattern} format",
-    "validation_error_invalid_date" => "{date} Is not a valid date",
-    "validation_error_invalid_date_format" => "{value} Not a valid {format} date format",
-    "validation_error_invalid_required" => "Cannot be left blank"
-];
+$validation = new \PHPValidation\PHPValidation();
+
+$test = $validation->withData([
+    'username'  => 'muhametsafak',
+    'password'  => 'Rd:3SvS?',
+]);
+
+$test->rule('required|string', ['username', 'password']);
+
+// This will always fail.
+$test->error('An error occurred during operations.');
+
+if($test->validation()){
+    // Success
+}else{
+    // Error : Failed.
+}
+
 ```
 
 
@@ -247,7 +312,7 @@ $val->lang = [
 
 The Rule method allows a data to be tested using one or more Validation class methods.
 
-The data to be tested is kept in an associative array. The `set()` method is used to define this array. When we want to keep the previous data, it is possible to add the data one by one with the `addSet()` method.
+The data to be tested is kept in an associative array. The `withData()` method is used to define this array.
 
 With the `rule()` method, it is specified which method will be applied to which data.
 
@@ -256,7 +321,7 @@ The `validation()` method performs the tests specified before it by the `rule()`
 **Example 1:**
 
 ```php
-$test = $val->set(["dataName" => "info@test.com"]);
+$test = $val->withData(["dataName" => "info@test.com"]);
 $test->rule("required", "dataName");
 $test->rule("is_string", "dataName");
 $test->rule("is_mail", "dataName");
@@ -265,46 +330,67 @@ if($test->validation()){
 }
 ```
 
-**Example 2:**
+## Custom Rule
+
+If the internal rules of the class are not enough for you; You can set custom rules with `ruleClosure()`, `ruleFunction()`, `ruleMethod()` functions.
+
+### Custom Closure Rule
 
 ```php
-$test = $val->set(["name" => "Muhammet", "surname" => "Safak"]);
-$test->addSet("age", 28);
-$test->rule("required", ["name", "surname", "age"]);
-$test->rule("is_string", ["name", "surname"]);
-$test->rule("is_int", "age");
+$test = $validation->withData(['input' => 'Data Content']);
+
+$test->ruleClosure(function($data){
+    if($data !== 'Text Val'){
+        return false;
+    }
+}, 'input', 'Validation failed.');
+
 if($test->validation()){
-    //Success
+    // success
 }
 ```
 
-
-## Parameterized validation via the RULE method 
-
-The parameter taken by the test method is given in parentheses.
-
-**Example 1:**
+### Custom Function Rule
 
 ```php
-$test = $val->set(["dataName" => 60]);
-$test->rule("min(30)", "dataName"); // Minimum : 30
-$test->rule("max(255)", "dataName"); // Maximum : 255
+function testVal($data)
+{
+    if(empty($data)){
+        return false;
+    }
+}
+
+$test = $validation->withData(['input' => 'Data Content']);
+
+$test->ruleFunction('testVal', 'input', 'Validation failed.');
+
 if($test->validation()){
-    // It is a value between 30 and 255.
+    // success
 }
 ```
 
-**Example 2:**
+### Custom Method Rule
+
+It provides validation with a certain method of a class or object.
 
 ```php
-$test = $val->set(["username" => "muhametsafak"]);
-$test->addSet("mailAddress", "info@muhammetsafak.com.tr");
-$test->rule(["required", "is_string"], ["username", "mailAddress"]);
-$test->rule("mail(gmail.com)", "mailAddress");
+class MyValidation
+{
+    public function testVal($data)
+    {
+        if($data != 'data content'){
+            return false
+        }
+        return true;
+    }
+}
+
+$test = $validation->withData(['input' => 'Data Content']);
+
+$test->ruleMethod(MyValidation::class, 'testVal', 'input', 'Validation failed.');
+
 if($test->validation()){
-    //Success
-}else{
-    //Error
+    // success
 }
 ```
 
@@ -313,7 +399,7 @@ if($test->validation()){
 You can test using regular expression patterns that you define with the `pattern()` method. The `regex()` method tests with the name of a pattern you define.
 
 ```php
-$test = $val->set(["dataName" => "Muhammet"]);
+$test = $val->withData(["dataName" => "Muhammet"]);
 $test->pattern("patternName", "[a-zA-Z0-9]"); //Adding Pattern
 $test->rule("regex(patternName)", "dataName");
 if($test->validation()){
@@ -323,8 +409,10 @@ if($test->validation()){
 
 ***
 
-This library was and will remain open source. Please let me know if you encounter an error.
+## License
 
-WEB : https://www.muhammetsafak.com.tr
+This library is written by [Muhammet ŞAFAK](https://www.muhammetsafak.com.tr) and distributed under the [GNU GPL 3.0](http://www.gnu.org/licenses/gpl-3.0.txt) license.
 
-E-Mail : info@muhammetsafak.com.tr
+Please let me know if you encounter an error.
+
+E-Mail : <info@muhammetsafak.com.tr> 
