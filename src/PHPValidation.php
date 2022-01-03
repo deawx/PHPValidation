@@ -395,11 +395,12 @@ class PHPValidation
      * It adds an external error so that the validation fails.
      *
      * @param string $error
+     * @param array $context
      * @return $this
      */
-    public function error(string $error): self
+    public function error(string $error, array $context = []): self
     {
-        $this->userError[] = $error;
+        $this->userError[] = $this->interpolate($error, $context);
         return $this;
     }
 

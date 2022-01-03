@@ -160,7 +160,7 @@ public function data(string $key): mixed|null
 It adds an external error so that the validation fails.
 
 ```php
-public function error(string $error): self
+public function error(string $error, array $context = []): self
 ```
 
 ### `errors()`
